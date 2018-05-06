@@ -89,7 +89,7 @@ SQL
   def generate_sql(conn, tag, time, record)
     kv_list = []
     record.each {|(key,value)|
-      kv_list.push("\"#{conn.escape_string(key.to_s)}\" => \"#{conn.escape_string(value.to_s)}\"")
+      kv_list.push("hstore(E'#{conn.escape_string(key.to_s)}',E'#{conn.escape_string(value.to_s)}')")
     }
 
     tag_list = tag.split(".")
@@ -97,7 +97,7 @@ SQL
 
     sql =<<"SQL"
 INSERT INTO #{@table} (tag, time, record) VALUES
-(ARRAY[#{tag_list.join(",")}], '#{Time.at(time)}'::TIMESTAMP WITH TIME ZONE, E'#{kv_list.join(",")}');
+(ARRAY[#{tag_list.join(",")}], '#{Time.at(time)}'::TIMESTAMP WITH TIME ZONE, #{kv_list.join("||")});
 SQL
 
     return sql
